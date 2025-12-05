@@ -156,30 +156,23 @@ export default function App() {
     return Math.round(priceScore + distanceScore + ratingScore);
   };
 
-  const handleSearch = () => {
-    if (!searchTest) return;
-    setLoading(true);
+const handleSearch = async () => {
+  if (!searchTest) return;
 
-    setTimeout(() => {
-      const results = mockHospitals
-        .filter((h) => h.tests[searchTest])
-        .map((h) => {
-          const base = h.tests[searchTest];
-          const outOfPocket = Math.round(base * 0.3);
-          return {
-            ...h,
-            basePrice: base,
-            outOfPocket,
-            savings: base - outOfPocket,
-            overallScore: calculateScore(h, base),
-          };
-        })
-        .sort((a, b) => b.overallScore - a.overallScore);
+  setLoading(true);
+  try {
+    const response = await fetch(
+      `/api/hospitals?test=${encodeURIComponent(searchTest)}`
+    );
 
-      setCompareResults(results);
-      setLoading(false);
-    }, 800);
-  };
+    const data = await response.json();
+
+    setCompareResults(data.hospitals || []);
+  } catch (error) {
+    console.error("Error fetching API:", error);
+  }
+  setLoading(false);
+};
 
   const handleBookNow = (hospital) => {
     setSelectedHospital(hospital);
