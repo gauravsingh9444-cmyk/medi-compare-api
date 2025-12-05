@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   MapPin,
@@ -43,6 +43,10 @@ export default function App() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState("score"); // "score" | "price" | "distance"
+  const [mlRecommendations, setMlRecommendations] = useState([]);
+
+  // ======= STATIC DATA =======
 
   const popularTests = [
     "Complete Blood Count (CBC)",
@@ -57,66 +61,6 @@ export default function App() {
     "ECG",
     "MRI Scan",
     "CT Scan",
-  ];
-
-  const mockHospitals = [
-    {
-      id: "h1",
-      name: "Green Valley Hospital",
-      location: "North District, Surat",
-      latitude: 21.1902,
-      longitude: 72.8511,
-      rating: 4.8,
-      reviews: 1245,
-      tests: {
-        "Complete Blood Count (CBC)": 425,
-        "Lipid Profile": 650,
-        "Thyroid Panel": 850,
-      },
-      distance: 2.3,
-      turnaround: "24 hours",
-      inNetwork: true,
-      accreditation: ["NABH", "NABL"],
-      specialties: ["Pathology", "Radiology"],
-    },
-    {
-      id: "h2",
-      name: "City Medical Center",
-      location: "Downtown, Surat",
-      latitude: 21.1502,
-      longitude: 72.8211,
-      rating: 4.5,
-      reviews: 987,
-      tests: {
-        "Complete Blood Count (CBC)": 550,
-        "Lipid Profile": 750,
-        "Thyroid Panel": 950,
-      },
-      distance: 5.1,
-      turnaround: "48 hours",
-      inNetwork: true,
-      accreditation: ["NABH"],
-      specialties: ["Pathology", "Cardiology"],
-    },
-    {
-      id: "h3",
-      name: "Sunrise Healthcare",
-      location: "East Side, Surat",
-      latitude: 21.1402,
-      longitude: 72.8711,
-      rating: 4.2,
-      reviews: 756,
-      tests: {
-        "Complete Blood Count (CBC)": 650,
-        "Lipid Profile": 850,
-        "Thyroid Panel": 1050,
-      },
-      distance: 3.7,
-      turnaround: "24 hours",
-      inNetwork: false,
-      accreditation: ["NABL"],
-      specialties: ["Pathology"],
-    },
   ];
 
   const priceTrendData = [
@@ -134,50 +78,76 @@ export default function App() {
     { category: "Referrals", amount: 400, color: "#f59e0b" },
   ];
 
-  const mlRecommendations = [
-    { test: "HbA1c Test", priority: "high", price: 75, score: 95 },
-    { test: "Lipid Panel", priority: "high", price: 85, score: 92 },
-    { test: "Thyroid Panel", priority: "medium", price: 120, score: 88 },
-    { test: "Vitamin D", priority: "medium", price: 60, score: 85 },
-  ];
-
-  const paymentPlans = [
-    { months: 3, emi: 150, total: 450, interest: 0 },
-    { months: 6, emi: 78, total: 468, interest: 18, recommended: true },
-    { months: 12, emi: 42, total: 504, interest: 54 },
-  ];
+  // ======= HELPERS =======
 
   const calculateScore = (hospital, price) => {
     const maxPrice = 1000;
     const maxDistance = 10;
     const priceScore = ((maxPrice - price) / maxPrice) * 50;
-    const distanceScore = ((maxDistance - hospital.distance) / maxDistance) * 30;
-    const ratingScore = (hospital.rating / 5) * 20;
+    const distanceScore = ((maxDistance - (hospital.distance ?? 0)) / maxDistance) * 30;
+    const ratingScore = ((hospital.rating ?? 4) / 5) * 20;
     return Math.round(priceScore + distanceScore + ratingScore);
   };
 
-const handleSearch = async () => {
-  if (!searchTest) return;
+  // ======= API CALLS =======
 
-  setLoading(true);
-  try {
-    const response = await fetch(
-      `/api/hospitals?test=${encodeURIComponent(searchTest)}`
-    );
+  // 1) Compare hospitals
+  const handleSearch = async () => {
+    if (!searchTest) return;
 
-    const data = await response.json();
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `/api/hospitals?test=${encodeURIComponent(searchTest)}`
+      );
+      const data = await response.json();
 
-    setCompareResults(data.hospitals || []);
-  } catch (error) {
-    console.error("Error fetching API:", error);
-  }
-  setLoading(false);
-};
+      // expect data.hospitals from backend
+      const hospitals = (data.hospitals || []).map((h) => {
+        const base = h.basePrice ?? h.price ?? 0;
+        const outOfPocket = h.outOfPocket ?? Math.round(base * 0.3);
+        const savings = h.savings ?? base - outOfPocket;
+        const distance = h.distance ?? h.distance_km ?? 0;
+
+        return {
+          ...h,
+          basePrice: base,
+          outOfPocket,
+          savings,
+          distance,
+          overallScore: h.overallScore ?? calculateScore(h, base),
+        };
+      });
+
+      setCompareResults(hospitals);
+    } catch (error) {
+      console.error("Error fetching API:", error);
+      setCompareResults([]);
+    }
+    setLoading(false);
+  };
+
+  // 2) AI Recommendations (Analytics tab)
+  useEffect(() => {
+    async function fetchRecs() {
+      try {
+        // you can pass age/focus later, hardcoding for now
+        const res = await fetch("/api/ai-recommend?age=32&focus=heart");
+        const data = await res.json();
+        setMlRecommendations(data.recommendations || []);
+      } catch (err) {
+        console.error("Error fetching AI recommendations:", err);
+      }
+    }
+    fetchRecs();
+  }, []);
 
   const handleBookNow = (hospital) => {
     setSelectedHospital(hospital);
     setShowBookingModal(true);
   };
+
+  // ======= UI SECTIONS =======
 
   const HeroSection = () => (
     <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
@@ -292,13 +262,14 @@ const handleSearch = async () => {
 
   const CompareSection = () => (
     <div className="space-y-6">
+      {/* Search + filters */}
       <div className="bg-white rounded-2xl shadow-xl p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
           <Search className="w-8 h-8 mr-3 text-blue-600" />
           Find Best Prices
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               What test are you looking for?
@@ -331,6 +302,20 @@ const handleSearch = async () => {
               <option>50 km</option>
             </select>
           </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Sort By
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-lg"
+            >
+              <option value="score">Best Match (Score)</option>
+              <option value="price">Lowest Price</option>
+              <option value="distance">Closest Distance</option>
+            </select>
+          </div>
         </div>
 
         <button
@@ -351,6 +336,7 @@ const handleSearch = async () => {
           )}
         </button>
 
+        {/* Popular tests chips */}
         <div className="mt-6">
           <p className="text-sm font-semibold text-gray-600 mb-3">
             Popular Searches:
@@ -372,6 +358,7 @@ const handleSearch = async () => {
         </div>
       </div>
 
+      {/* Results list */}
       {compareResults && compareResults.length > 0 && (
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex items-center justify-between mb-6">
@@ -384,114 +371,143 @@ const handleSearch = async () => {
           </div>
 
           <div className="space-y-4">
-            {compareResults.map((hospital, idx) => (
-              <div
-                key={hospital.id}
-                className={`border-2 rounded-xl p-6 transition hover:shadow-xl ${
-                  idx === 0
-                    ? "border-green-500 bg-green-50"
-                    : "border-gray-200 hover:border-blue-300"
-                }`}
-              >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <h4 className="text-xl font-bold text-gray-800">
-                        {hospital.name}
-                      </h4>
-                      {idx === 0 && (
-                        <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center">
-                          <Check className="w-3 h-3 mr-1" />
-                          BEST VALUE
+            {[...(compareResults || [])]
+              .sort((a, b) => {
+                if (sortBy === "price") {
+                  return (a.outOfPocket ?? 0) - (b.outOfPocket ?? 0);
+                }
+                if (sortBy === "distance") {
+                  return (a.distance ?? 0) - (b.distance ?? 0);
+                }
+                // default sort by score
+                return (b.overallScore ?? 0) - (a.overallScore ?? 0);
+              })
+              .map((hospital, idx) => (
+                <div
+                  key={hospital.id ?? idx}
+                  className={`border-2 rounded-xl p-6 transition hover:shadow-xl ${
+                    idx === 0
+                      ? "border-green-500 bg-green-50"
+                      : "border-gray-200 hover:border-blue-300"
+                  }`}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <h4 className="text-xl font-bold text-gray-800">
+                          {hospital.name}
+                        </h4>
+                        {idx === 0 && (
+                          <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center">
+                            <Check className="w-3 h-3 mr-1" />
+                            BEST VALUE
+                          </span>
+                        )}
+                        {hospital.inNetwork && (
+                          <span className="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                            IN-NETWORK
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                        <span className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {hospital.location}
                         </span>
-                      )}
-                      {hospital.inNetwork && (
-                        <span className="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
-                          IN-NETWORK
+                        <span className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
+                          {hospital.rating ?? 4.3} (
+                          {hospital.reviews ?? 500} reviews)
                         </span>
-                      )}
+                        <span className="flex items-center">
+                          <Navigation className="w-4 h-4 mr-1" />
+                          {hospital.distance ?? 0} km away
+                        </span>
+                        <span className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          {hospital.turnaround ?? "24 hours"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {(hospital.accreditation || []).map((acc) => (
+                          <span
+                            key={acc}
+                            className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded"
+                          >
+                            {acc}
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
-                      <span className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {hospital.location}
-                      </span>
-                      <span className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
-                        {hospital.rating} ({hospital.reviews} reviews)
-                      </span>
-                      <span className="flex items-center">
-                        <Navigation className="w-4 h-4 mr-1" />
-                        {hospital.distance} km away
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {hospital.turnaround}
-                      </span>
+                    <div className="text-center lg:text-right">
+                      <div className="mb-2">
+                        <p className="text-sm text-gray-500 line-through">
+                          ₹{hospital.basePrice}
+                        </p>
+                        <p className="text-4xl font-bold text-green-600">
+                          ₹{hospital.outOfPocket}
+                        </p>
+                        <p className="text-sm text-green-600 font-semibold">
+                          You save ₹{hospital.savings}
+                        </p>
+                      </div>
+                      <div className="mb-3">
+                        <p className="text-sm text-gray-600">Overall Score</p>
+                        <p className="text-2xl font-bold text-blue-600">
+                          {hospital.overallScore}/100
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleBookNow(hospital)}
+                        className="w-full lg:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg flex items-center justify-center space-x-2"
+                      >
+                        <Calendar className="w-5 h-5" />
+                        <span>Book Now</span>
+                      </button>
                     </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {hospital.accreditation.map((acc) => (
-                        <span
-                          key={acc}
-                          className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded"
-                        >
-                          {acc}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="text-center lg:text-right">
-                    <div className="mb-2">
-                      <p className="text-sm text-gray-500 line-through">
-                        ₹{hospital.basePrice}
-                      </p>
-                      <p className="text-4xl font-bold text-green-600">
-                        ₹{hospital.outOfPocket}
-                      </p>
-                      <p className="text-sm text-green-600 font-semibold">
-                        You save ₹{hospital.savings}
-                      </p>
-                    </div>
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-600">Overall Score</p>
-                      <p className="text-2xl font-bold text-blue-600">
-                        {hospital.overallScore}/100
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleBookNow(hospital)}
-                      className="w-full lg:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg flex items-center justify-center space-x-2"
-                    >
-                      <Calendar className="w-5 h-5" />
-                      <span>Book Now</span>
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
 
-          <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border-2 border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">
-                  💰 Maximum savings between cheapest & costliest option
-                </p>
-                <p className="text-5xl font-bold text-green-600">
-                  ₹
-                  {compareResults[compareResults.length - 1].outOfPocket -
-                    compareResults[0].outOfPocket}
-                </p>
+          {/* Savings summary */}
+          {compareResults.length > 1 && (
+            <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border-2 border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">
+                    💰 Maximum savings between cheapest & costliest option
+                  </p>
+                  <p className="text-5xl font-bold text-green-600">
+                    ₹
+                    {compareResults[compareResults.length - 1].outOfPocket -
+                      compareResults[0].outOfPocket}
+                  </p>
+                </div>
+                <TrendingDown className="w-20 h-20 text-green-500" />
               </div>
-              <TrendingDown className="w-20 h-20 text-green-500" />
             </div>
-          </div>
+          )}
         </div>
       )}
 
+      {/* No results message */}
+      {compareResults && compareResults.length === 0 && (
+        <div className="bg-white rounded-2xl shadow-xl p-8 mt-4 text-center">
+          <p className="text-xl font-semibold text-gray-800 mb-2">
+            No hospitals found for “{searchTest}” in Surat.
+          </p>
+          <p className="text-gray-600">
+            Try a different test name or select a common test like CBC, Lipid
+            Profile, or Thyroid Panel.
+          </p>
+        </div>
+      )}
+
+      {/* AI insight cards below results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
           <div className="flex items-center space-x-3 mb-6">
@@ -510,8 +526,8 @@ const handleSearch = async () => {
             <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-xl p-4">
               <TrendingDown className="w-6 h-6" />
               <p className="text-sm">
-                Price expected to drop 3.5%. Consider booking later to save
-                ~₹15.
+                Price expected to drop ~3–4%. Consider booking later to save a
+                bit more.
               </p>
             </div>
           </div>
@@ -625,6 +641,7 @@ const handleSearch = async () => {
         </div>
       </div>
 
+      {/* AI Recommendations from API */}
       <div className="bg-white rounded-2xl shadow-xl p-8">
         <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
           <Sparkles className="w-7 h-7 mr-2 text-yellow-500" />
@@ -642,7 +659,7 @@ const handleSearch = async () => {
                     {rec.test}
                   </h4>
                   <p className="text-sm text-gray-600 mt-1">
-                    Recommended based on your profile
+                    {rec.reason || "Recommended based on your profile"}
                   </p>
                 </div>
                 <span
@@ -652,7 +669,7 @@ const handleSearch = async () => {
                       : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
-                  {rec.priority.toUpperCase()}
+                  {rec.priority?.toUpperCase()}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -671,6 +688,11 @@ const handleSearch = async () => {
               </div>
             </div>
           ))}
+          {mlRecommendations.length === 0 && (
+            <p className="text-gray-500 text-sm">
+              Loading AI recommendations...
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -714,10 +736,10 @@ const handleSearch = async () => {
               <div className="flex items-center space-x-4 mt-2 text-sm">
                 <span className="flex items-center text-yellow-600">
                   <Star className="w-4 h-4 fill-yellow-400 mr-1" />
-                  {selectedHospital.rating}
+                  {selectedHospital.rating ?? 4.3}
                 </span>
                 <span className="text-gray-600">
-                  {selectedHospital.distance} km away
+                  {selectedHospital.distance ?? 0} km away
                 </span>
               </div>
             </div>
@@ -892,7 +914,11 @@ const handleSearch = async () => {
                 EMI Options
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {paymentPlans.map((plan) => (
+                {[
+                  { months: 3, emi: 150, total: 450, recommended: false },
+                  { months: 6, emi: 78, total: 468, recommended: true },
+                  { months: 12, emi: 42, total: 504, recommended: false },
+                ].map((plan) => (
                   <div
                     key={plan.months}
                     className={`border-2 rounded-xl p-4 cursor-pointer transition ${
@@ -967,8 +993,11 @@ const handleSearch = async () => {
       </div>
     );
 
+  // ======= MAIN RENDER =======
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div
@@ -982,7 +1011,9 @@ const handleSearch = async () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 MediCompare AI
               </h1>
-              <p className="text-xs text-gray-500">Healthcare Made Affordable</p>
+              <p className="text-xs text-gray-500">
+                Healthcare Made Affordable
+              </p>
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-6">
@@ -1025,6 +1056,7 @@ const handleSearch = async () => {
         </div>
       </header>
 
+      {/* Main content */}
       {activeTab === "home" && (
         <>
           <HeroSection />
@@ -1083,10 +1115,12 @@ const handleSearch = async () => {
 
       {activeTab === "analytics" && <AnalyticsSection />}
 
+      {/* Modals */}
       <BookingModal />
       <PaymentModal />
       <ShareModal />
 
+      {/* Footer */}
       <footer className="bg-gray-900 text-white py-12 mt-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
