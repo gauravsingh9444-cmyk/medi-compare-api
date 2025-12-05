@@ -1,34 +1,55 @@
-// api/ai-recommend.js
-// Stub for AI recommendations – later we plug in OpenAI / Claude.
-// For now it just returns a mocked message.
+export default function handler(req, res) {
+  const { age, focus } = req.query;
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Use POST" });
+  // Basic sample recommendations (you can improve this later)
+  let recommendations = [
+    {
+      test: "Complete Blood Count (CBC)",
+      priority: "medium",
+      price: 350,
+      score: 82,
+      reason: "General health indicator"
+    },
+    {
+      test: "Lipid Profile",
+      priority: "medium",
+      price: 450,
+      score: 85,
+      reason: "Checks cholesterol levels"
+    },
+    {
+      test: "Thyroid Panel",
+      priority: "medium",
+      price: 800,
+      score: 79,
+      reason: "Thyroid hormone evaluation"
+    }
+  ];
+
+  // Add age-based recommendations
+  if (age && Number(age) > 40) {
+    recommendations.push({
+      test: "Liver Function Test",
+      priority: "medium",
+      price: 900,
+      score: 84,
+      reason: "Helps detect metabolic & liver-related issues"
+    });
   }
 
-  const { age, conditions = [], budget } = req.body || {};
-
-  // Simple rule-based logic for now
-  const recs = [];
-
-  if (age >= 40) {
-    recs.push("Lipid Profile", "Blood Sugar (Fasting)", "Liver Function Test");
+  // Add focus-based recommendations
+  if (focus && focus.toLowerCase() === "heart") {
+    recommendations.unshift({
+      test: "Cardiac Risk Panel",
+      priority: "high",
+      price: 1500,
+      score: 97,
+      reason: "Strong indicators of cardiac risk"
+    });
   }
-  if (conditions.some((c) => c.toLowerCase().includes("diabetes"))) {
-    recs.push("HbA1c Test", "Kidney Function Test");
-  }
-  if (conditions.some((c) => c.toLowerCase().includes("thyroid"))) {
-    recs.push("Thyroid Panel");
-  }
-
-  const uniqueRecs = [...new Set(recs)];
 
   return res.status(200).json({
-    engine: "rule-based-stub",
-    age,
-    conditions,
-    budget,
-    recommendations: uniqueRecs
+    success: true,
+    recommendations
   });
 }
