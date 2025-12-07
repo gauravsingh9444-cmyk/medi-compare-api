@@ -256,72 +256,160 @@ export default function App() {
     }
   }, [activeTab, mlRecommendations, mlLoading]);
 
-  const HeroSection = () => (
-    <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
-      <div className="absolute inset-0 bg-black opacity-10" />
-      <div className="relative max-w-7xl mx-auto px-4 py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div className="space-y-6">
-          <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
-            <Sparkles className="w-4 h-4 text-yellow-300" />
-            <span className="text-sm font-medium">
-              AI-Powered Healthcare Savings
-            </span>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-            Save up to <span className="text-yellow-300">70%</span> on Medical
-            Tests
-          </h1>
-          <p className="text-xl text-blue-100">
-            Compare prices across hospitals, get AI recommendations, and book
-            appointments instantly.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={() => setActiveTab("compare")}
-              className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-              Start Comparing
-            </button>
-            <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition border-2 border-white/30">
-              Watch Demo
-            </button>
-          </div>
-          <div className="flex items-center space-x-8 pt-4">
-            <StatBubble value="$3.2M+" label="Total Saved" />
-            <StatBubble value="25K+" label="Happy Users" />
-            <StatBubble value="150+" label="Hospitals" />
-          </div>
-        </div>
+  // ⭐ HERO SECTION WITH AI CARDS (CLICKABLE)
+  const HeroSection = () => {
+    // Use real AI recs if available, otherwise show nice defaults
+    const heroCards =
+      mlRecommendations.length > 0
+        ? mlRecommendations.slice(0, 3).map((rec, idx) => ({
+            id: `ai-${idx}`,
+            title: rec.test,
+            subtitle: rec.reason || "Smart pick based on your profile",
+            badge: rec.score != null ? `${rec.score}% match` : "AI suggested",
+            price: `From ₹${rec.price}`,
+          }))
+        : [
+            {
+              id: "cbc",
+              title: "CBC • Best Overall Value",
+              subtitle: "Green Valley Hospital • 2.3 km away",
+              badge: "Save up to 68%",
+              price: "From ₹425 → ₹140 with insurance",
+            },
+            {
+              id: "lipid",
+              title: "Lipid Profile • Heart Health",
+              subtitle: "Top 3 cheapest labs near you",
+              badge: "AI pick",
+              price: "From ₹650 • 92% match",
+            },
+            {
+              id: "thyroid",
+              title: "Thyroid Panel • Trending",
+              subtitle: "Frequently booked by users like you",
+              badge: "Smart choice",
+              price: "From ₹850 • Stable prices this month",
+            },
+          ];
 
-        <div className="relative hidden lg:block">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl p-4 shadow-lg animate-pulse"
-                  style={{ animationDelay: `${i * 0.2}s` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg" />
-                      <div>
-                        <div className="w-32 h-4 bg-gray-200 rounded" />
-                        <div className="w-24 h-3 bg-gray-100 rounded mt-2" />
+    return (
+      <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10" />
+
+        <div className="relative max-w-7xl mx-auto px-4 py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* LEFT SIDE */}
+          <div className="space-y-6">
+            <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+              <Sparkles className="w-4 h-4 text-yellow-300" />
+              <span className="text-sm font-medium">
+                AI-Powered Healthcare Savings
+              </span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+              Save up to <span className="text-yellow-300">70%</span> on Medical
+              Tests
+            </h1>
+            <p className="text-xl text-blue-100">
+              Compare prices across hospitals, get AI recommendations, and book
+              appointments instantly.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={() => setActiveTab("compare")}
+                className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                Start Comparing
+              </button>
+              <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text.white rounded-xl font-semibold hover:bg-white/20 transition border-2 border-white/30">
+                Watch Demo
+              </button>
+            </div>
+            <div className="flex items-center space-x-8 pt-4">
+              <StatBubble value="$3.2M+" label="Total Saved" />
+              <StatBubble value="25K+" label="Happy Users" />
+              <StatBubble value="150+" label="Hospitals" />
+            </div>
+          </div>
+
+          {/* RIGHT SIDE – AI INSIGHTS PANEL */}
+          <div className="relative hidden lg:block">
+            <div className="absolute -top-4 -right-4 w-6 h-6 rounded-full bg-emerald-400/70 blur-xl opacity-60 animate-pulse" />
+
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs text-blue-100 tracking-wide uppercase">
+                    Live AI Insights
+                  </p>
+                  <p className="text-sm text-blue-50">
+                    Optimized for your city & nearby hospitals
+                  </p>
+                </div>
+                <div className="relative">
+                  <span className="absolute inline-flex h-3 w-3 rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-300" />
+                </div>
+              </div>
+
+              <div className="space-y-3 mt-3">
+                {heroCards.map((card, idx) => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => {
+                      // extract clean test name e.g. "CBC • Best Overall Value" -> "CBC"
+                      const testName = card.title.split("•")[0].trim();
+                      setSearchTest(testName);
+                      setActiveTab("compare");
+                      setTimeout(() => {
+                        handleSearch();
+                      }, 150);
+                    }}
+                    className={`group relative w-full text-left overflow-hidden rounded-xl bg-white/95 backdrop-blur shadow-lg transition transform duration-300 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                      idx === 2 ? "bg-gradient-to-r from-indigo-50 to-purple-50" : ""
+                    }`}
+                  >
+                    <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-500" />
+                    <div className="flex items-center px-4 py-3 pl-5">
+                      <div className="mr-3 flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md group-hover:scale-105 transition-transform">
+                        {idx === 0 && <TrendingDown className="w-5 h-5" />}
+                        {idx === 1 && <Brain className="w-5 h-5" />}
+                        {idx === 2 && <Sparkles className="w-5 h-5" />}
+                      </div>
+
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {card.title}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {card.subtitle}
+                        </p>
+                        <p className="text-xs font-medium text-emerald-600 mt-1">
+                          {card.price}
+                        </p>
+                      </div>
+
+                      <div className="ml-3">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          {card.badge}
+                        </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="w-16 h-6 bg-green-100 rounded" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  </button>
+                ))}
+              </div>
+
+              <p className="mt-4 text-[11px] text-blue-100 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                MediCompare AI continuously scans prices, distance and ratings to
+                surface the smartest options for you.
+              </p>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
+      </section>
+    );
+  };
 
   const StatBubble = ({ value, label }) => (
     <div>
@@ -477,13 +565,13 @@ export default function App() {
                         {hospital.name}
                       </h4>
                       {idx === 0 && (
-                        <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center">
+                        <span className="px-3 py-1 bg-green-500 text.white text-xs font-bold rounded-full flex items-center">
                           <Check className="w-3 h-3 mr-1" />
                           BEST VALUE
                         </span>
                       )}
                       {hospital.inNetwork && (
-                        <span className="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                        <span className="px-3 py-1 bg-blue-500 text.white text-xs font-bold rounded-full">
                           IN-NETWORK
                         </span>
                       )}
@@ -501,9 +589,7 @@ export default function App() {
                       <span className="flex items-center">
                         <Navigation className="w-4 h-4 mr-1" />
                         {(hospital.distance_km ?? hospital.distance)?.toFixed
-                          ? (hospital.distance_km ?? hospital.distance).toFixed(
-                              1
-                            )
+                          ? (hospital.distance_km ?? hospital.distance).toFixed(1)
                           : hospital.distance_km ?? hospital.distance ?? 5}{" "}
                         km away
                       </span>
@@ -545,7 +631,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => handleBookNow(hospital)}
-                      className="w-full lg:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg flex items-center justify-center space-x-2"
+                      className="w-full lg:w-auto px-6 py-3 bg-blue-600 text.white rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg flex items-center justify-center space-x-2"
                     >
                       <Calendar className="w-5 h-5" />
                       <span>Book Now</span>
@@ -575,7 +661,7 @@ export default function App() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
+        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl p-8 text.white">
           <div className="flex items-center space-x-3 mb-6">
             <Brain className="w-8 h-8" />
             <h3 className="text-2xl font-bold">AI Price Prediction</h3>
@@ -600,9 +686,7 @@ export default function App() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">
-            Price Trend
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">Price Trend</h3>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={priceTrendData}>
               <defs>
@@ -734,9 +818,7 @@ export default function App() {
         )}
 
         {mlLoading && (
-          <p className="text-sm text-gray-500 mb-4">
-            Loading AI suggestions…
-          </p>
+          <p className="text-sm text-gray-500 mb-4">Loading AI suggestions…</p>
         )}
 
         {!mlLoading && !mlError && mlRecommendations.length === 0 && (
@@ -941,7 +1023,7 @@ export default function App() {
                   setShowBookingModal(false);
                   setShowPaymentModal(true);
                 }}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text.white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg"
               >
                 Proceed to Payment
               </button>
@@ -1021,7 +1103,7 @@ export default function App() {
                     }`}
                   >
                     {plan.recommended && (
-                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full mb-2 inline-block">
+                      <span className="bg-blue-500 text.white text-xs px-2 py-1 rounded-full mb-2 inline-block">
                         RECOMMENDED
                       </span>
                     )}
@@ -1040,7 +1122,7 @@ export default function App() {
               </div>
             </div>
 
-            <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center space-x-2">
+            <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text.white py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center space-x-2">
               <Check className="w-5 h-5" />
               <span>Complete Payment</span>
             </button>
@@ -1062,15 +1144,15 @@ export default function App() {
           </div>
 
           <div className="space-y-3">
-            <button className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition font-semibold flex items-center justify-center space-x-2">
+            <button className="w-full bg-blue-600 text.white py-3 rounded-xl hover:bg-blue-700 transition font-semibold flex items-center justify-center space-x-2">
               <Share2 className="w-5 h-5" />
               <span>Share on Facebook</span>
             </button>
-            <button className="w-full bg-sky-500 text-white py-3 rounded-xl hover:bg-sky-600 transition font-semibold flex items-center justify-center space-x-2">
+            <button className="w-full bg-sky-500 text.white py-3 rounded-xl hover:bg-sky-600 transition font-semibold flex items-center justify-center space-x-2">
               <Share2 className="w-5 h-5" />
               <span>Share on Twitter</span>
             </button>
-            <button className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition font-semibold flex items-center justify-center space-x-2">
+            <button className="w-full bg-green-500 text.white py-3 rounded-xl hover:bg-green-600 transition font-semibold flex items-center justify-center space-x-2">
               <Share2 className="w-5 h-5" />
               <span>Share on WhatsApp</span>
             </button>
@@ -1095,7 +1177,7 @@ export default function App() {
             onClick={() => setActiveTab("home")}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-xl">
-              <Hospital className="w-8 h-8 text-white" />
+              <Hospital className="w-8 h-8 text.white" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -1133,11 +1215,11 @@ export default function App() {
             </button>
             <button className="relative p-2 hover:bg-gray-100 rounded-lg transition">
               <Bell className="w-6 h-6 text-gray-600" />
-              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute top-0 right-0 bg-red-500 text.white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
                 3
               </span>
             </button>
-            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg">
+            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text.white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg">
               Sign In
             </button>
           </div>
@@ -1176,7 +1258,7 @@ export default function App() {
               />
             </div>
 
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-2xl p-12 text-center text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-2xl p-12 text-center text.white">
               <h2 className="text-4xl font-bold mb-4">
                 Ready to Start Saving?
               </h2>
@@ -1185,7 +1267,7 @@ export default function App() {
               </p>
               <button
                 onClick={() => setActiveTab("compare")}
-                className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="px-8 py-4 bg.white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 Start Comparing Now
               </button>
@@ -1213,7 +1295,7 @@ export default function App() {
       <PaymentModal />
       <ShareModal />
 
-      <footer className="bg-gray-900 text-white py-12 mt-16">
+      <footer className="bg-gray-900 text.white py-12 mt-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -1229,17 +1311,17 @@ export default function App() {
               <h4 className="font-bold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="#" className="hover:text.white transition">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="#" className="hover:text.white transition">
                     Careers
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="#" className="hover:text.white transition">
                     Press
                   </a>
                 </li>
@@ -1249,17 +1331,17 @@ export default function App() {
               <h4 className="font-bold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="#" className="hover:text.white transition">
                     Help Center
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="#" className="hover:text.white transition">
                     Contact Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="#" className="hover:text.white transition">
                     Privacy Policy
                   </a>
                 </li>
