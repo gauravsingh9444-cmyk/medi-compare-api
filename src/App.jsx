@@ -49,6 +49,10 @@ export default function App() {
   const [mlLoading, setMlLoading] = useState(false);
   const [mlError, setMlError] = useState("");
 
+  // 🎬 Watch Demo modal state
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [demoStep, setDemoStep] = useState(0);
+
   const popularTests = [
     "Complete Blood Count (CBC)",
     "Lipid Profile",
@@ -239,7 +243,9 @@ export default function App() {
       setMlRecommendations(data.recommendations || []);
     } catch (err) {
       console.error("AI recommendations error:", err);
-      setMlError(err.message || "Something went wrong while loading AI suggestions.");
+      setMlError(
+        err.message || "Something went wrong while loading AI suggestions."
+      );
     } finally {
       setMlLoading(false);
     }
@@ -256,7 +262,7 @@ export default function App() {
     }
   }, [activeTab, mlRecommendations, mlLoading]);
 
-  // ⭐ HERO SECTION WITH AI CARDS (CLICKABLE)
+  // 🦾 HERO SECTION WITH AI CARDS + WATCH DEMO
   const HeroSection = () => {
     // Use real AI recs if available, otherwise show nice defaults
     const heroCards =
@@ -271,17 +277,17 @@ export default function App() {
         : [
             {
               id: "cbc",
-              title: "CBC • Best Overall Value",
+              title: "Complete Blood Count (CBC) • Best Overall Value",
               subtitle: "Green Valley Hospital • 2.3 km away",
               badge: "Save up to 68%",
-              price: "From ₹425 → ₹140 with insurance",
+              price: "From ₹425 → ~₹140 with insurance",
             },
             {
               id: "lipid",
               title: "Lipid Profile • Heart Health",
               subtitle: "Top 3 cheapest labs near you",
               badge: "AI pick",
-              price: "From ₹650 • 92% match",
+              price: "From ₹650 • ~92% match",
             },
             {
               id: "thyroid",
@@ -320,7 +326,13 @@ export default function App() {
               >
                 Start Comparing
               </button>
-              <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text.white rounded-xl font-semibold hover:bg-white/20 transition border-2 border-white/30">
+              <button
+                onClick={() => {
+                  setDemoStep(0);
+                  setShowDemoModal(true);
+                }}
+                className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition border-2 border-white/30"
+              >
                 Watch Demo
               </button>
             </div>
@@ -357,7 +369,6 @@ export default function App() {
                     key={card.id}
                     type="button"
                     onClick={() => {
-                      // extract clean test name e.g. "CBC • Best Overall Value" -> "CBC"
                       const testName = card.title.split("•")[0].trim();
                       setSearchTest(testName);
                       setActiveTab("compare");
@@ -366,7 +377,9 @@ export default function App() {
                       }, 150);
                     }}
                     className={`group relative w-full text-left overflow-hidden rounded-xl bg-white/95 backdrop-blur shadow-lg transition transform duration-300 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                      idx === 2 ? "bg-gradient-to-r from-indigo-50 to-purple-50" : ""
+                      idx === 2
+                        ? "bg-gradient-to-r from-indigo-50 to-purple-50"
+                        : ""
                     }`}
                   >
                     <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-500" />
@@ -565,13 +578,13 @@ export default function App() {
                         {hospital.name}
                       </h4>
                       {idx === 0 && (
-                        <span className="px-3 py-1 bg-green-500 text.white text-xs font-bold rounded-full flex items-center">
+                        <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center">
                           <Check className="w-3 h-3 mr-1" />
                           BEST VALUE
                         </span>
                       )}
                       {hospital.inNetwork && (
-                        <span className="px-3 py-1 bg-blue-500 text.white text-xs font-bold rounded-full">
+                        <span className="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
                           IN-NETWORK
                         </span>
                       )}
@@ -589,7 +602,9 @@ export default function App() {
                       <span className="flex items-center">
                         <Navigation className="w-4 h-4 mr-1" />
                         {(hospital.distance_km ?? hospital.distance)?.toFixed
-                          ? (hospital.distance_km ?? hospital.distance).toFixed(1)
+                          ? (hospital.distance_km ?? hospital.distance).toFixed(
+                              1
+                            )
                           : hospital.distance_km ?? hospital.distance ?? 5}{" "}
                         km away
                       </span>
@@ -631,7 +646,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => handleBookNow(hospital)}
-                      className="w-full lg:w-auto px-6 py-3 bg-blue-600 text.white rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg flex items-center justify-center space-x-2"
+                      className="w-full lg:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg flex items-center justify-center space-x-2"
                     >
                       <Calendar className="w-5 h-5" />
                       <span>Book Now</span>
@@ -661,7 +676,7 @@ export default function App() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl p-8 text.white">
+        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
           <div className="flex items-center space-x-3 mb-6">
             <Brain className="w-8 h-8" />
             <h3 className="text-2xl font-bold">AI Price Prediction</h3>
@@ -686,7 +701,9 @@ export default function App() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">Price Trend</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">
+            Price Trend
+          </h3>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={priceTrendData}>
               <defs>
@@ -812,13 +829,13 @@ export default function App() {
         </div>
 
         {mlError && (
-          <p className="text-sm text-red-600 mb-4">
-            ⚠ {mlError}
-          </p>
+          <p className="text-sm text-red-600 mb-4">⚠ {mlError}</p>
         )}
 
         {mlLoading && (
-          <p className="text-sm text-gray-500 mb-4">Loading AI suggestions…</p>
+          <p className="text-sm text-gray-500 mb-4">
+            Loading AI suggestions…
+          </p>
         )}
 
         {!mlLoading && !mlError && mlRecommendations.length === 0 && (
@@ -1023,7 +1040,7 @@ export default function App() {
                   setShowBookingModal(false);
                   setShowPaymentModal(true);
                 }}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text.white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg"
               >
                 Proceed to Payment
               </button>
@@ -1103,7 +1120,7 @@ export default function App() {
                     }`}
                   >
                     {plan.recommended && (
-                      <span className="bg-blue-500 text.white text-xs px-2 py-1 rounded-full mb-2 inline-block">
+                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full mb-2 inline-block">
                         RECOMMENDED
                       </span>
                     )}
@@ -1122,7 +1139,7 @@ export default function App() {
               </div>
             </div>
 
-            <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text.white py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center space-x-2">
+            <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center space-x-2">
               <Check className="w-5 h-5" />
               <span>Complete Payment</span>
             </button>
@@ -1144,15 +1161,15 @@ export default function App() {
           </div>
 
           <div className="space-y-3">
-            <button className="w-full bg-blue-600 text.white py-3 rounded-xl hover:bg-blue-700 transition font-semibold flex items-center justify-center space-x-2">
+            <button className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition font-semibold flex items-center justify-center space-x-2">
               <Share2 className="w-5 h-5" />
               <span>Share on Facebook</span>
             </button>
-            <button className="w-full bg-sky-500 text.white py-3 rounded-xl hover:bg-sky-600 transition font-semibold flex items-center justify-center space-x-2">
+            <button className="w-full bg-sky-500 text-white py-3 rounded-xl hover:bg-sky-600 transition font-semibold flex items-center justify-center space-x-2">
               <Share2 className="w-5 h-5" />
               <span>Share on Twitter</span>
             </button>
-            <button className="w-full bg-green-500 text.white py-3 rounded-xl hover:bg-green-600 transition font-semibold flex items-center justify-center space-x-2">
+            <button className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition font-semibold flex items-center justify-center space-x-2">
               <Share2 className="w-5 h-5" />
               <span>Share on WhatsApp</span>
             </button>
@@ -1168,6 +1185,118 @@ export default function App() {
       </div>
     );
 
+  // 🎬 WATCH DEMO MODAL
+  const DemoModal = () =>
+    showDemoModal && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999] p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+          {/* HEADER */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-white">
+              How MediCompare Works
+            </h2>
+            <button
+              onClick={() => {
+                setShowDemoModal(false);
+                setDemoStep(0);
+              }}
+              className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          {/* BODY */}
+          <div className="p-6 space-y-6">
+            {demoStep === 0 && (
+              <div className="space-y-3">
+                <h3 className="text-xl font-bold">1. Search Any Test</h3>
+                <p className="text-gray-600">
+                  Type tests like CBC, Lipid Profile, Thyroid, MRI and we scan
+                  hospitals instantly.
+                </p>
+                <div className="rounded-xl overflow-hidden border border-gray-100 shadow">
+                  <img
+                    src="https://i.imgur.com/tXqkB0S.gif"
+                    className="w-full h-auto"
+                    alt="Search demo"
+                  />
+                </div>
+              </div>
+            )}
+
+            {demoStep === 1 && (
+              <div className="space-y-3">
+                <h3 className="text-xl font-bold">2. Compare Hospitals</h3>
+                <p className="text-gray-600">
+                  See prices, distance, ratings, accreditation and potential
+                  savings side-by-side.
+                </p>
+                <div className="rounded-xl overflow-hidden border border-gray-100 shadow">
+                  <img
+                    src="https://i.imgur.com/Wc7xHcX.gif"
+                    className="w-full h-auto"
+                    alt="Compare demo"
+                  />
+                </div>
+              </div>
+            )}
+
+            {demoStep === 2 && (
+              <div className="space-y-3">
+                <h3 className="text-xl font-bold">3. Book & Save</h3>
+                <p className="text-gray-600">
+                  Book in a few clicks, choose payment or EMI, and save up to
+                  70% using AI-optimized pricing.
+                </p>
+                <div className="rounded-xl overflow-hidden border border-gray-100 shadow">
+                  <img
+                    src="https://i.imgur.com/tx0Mi4Q.gif"
+                    className="w-full h-auto"
+                    alt="Booking demo"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* FOOTER */}
+          <div className="p-6 bg-gray-50 flex justify-between">
+            <button
+              onClick={() => setDemoStep((prev) => Math.max(0, prev - 1))}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                demoStep === 0
+                  ? "bg-gray-200 opacity-50 cursor-not-allowed"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+              disabled={demoStep === 0}
+            >
+              Back
+            </button>
+
+            {demoStep < 2 ? (
+              <button
+                onClick={() => setDemoStep((prev) => Math.min(2, prev + 1))}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setDemoStep(0);
+                  setShowDemoModal(false);
+                }}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition"
+              >
+                Got it, start now
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white shadow-md sticky top-0 z-40">
@@ -1177,13 +1306,15 @@ export default function App() {
             onClick={() => setActiveTab("home")}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-xl">
-              <Hospital className="w-8 h-8 text.white" />
+              <Hospital className="w-8 h-8 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 MediCompare AI
               </h1>
-              <p className="text-xs text-gray-500">Healthcare Made Affordable</p>
+              <p className="text-xs text-gray-500">
+                Healthcare Made Affordable
+              </p>
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-6">
@@ -1215,11 +1346,11 @@ export default function App() {
             </button>
             <button className="relative p-2 hover:bg-gray-100 rounded-lg transition">
               <Bell className="w-6 h-6 text-gray-600" />
-              <span className="absolute top-0 right-0 bg-red-500 text.white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
                 3
               </span>
             </button>
-            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text.white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg">
+            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg">
               Sign In
             </button>
           </div>
@@ -1258,7 +1389,7 @@ export default function App() {
               />
             </div>
 
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-2xl p-12 text-center text.white">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-2xl p-12 text-center text-white">
               <h2 className="text-4xl font-bold mb-4">
                 Ready to Start Saving?
               </h2>
@@ -1267,7 +1398,7 @@ export default function App() {
               </p>
               <button
                 onClick={() => setActiveTab("compare")}
-                className="px-8 py-4 bg.white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 Start Comparing Now
               </button>
@@ -1291,11 +1422,13 @@ export default function App() {
         />
       )}
 
+      {/* MODALS */}
       <BookingModal />
       <PaymentModal />
       <ShareModal />
+      <DemoModal />
 
-      <footer className="bg-gray-900 text.white py-12 mt-16">
+      <footer className="bg-gray-900 text-white py-12 mt-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -1311,17 +1444,17 @@ export default function App() {
               <h4 className="font-bold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li>
-                  <a href="#" className="hover:text.white transition">
+                  <a href="#" className="hover:text-white transition">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text.white transition">
+                  <a href="#" className="hover:text-white transition">
                     Careers
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text.white transition">
+                  <a href="#" className="hover:text-white transition">
                     Press
                   </a>
                 </li>
@@ -1331,17 +1464,17 @@ export default function App() {
               <h4 className="font-bold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li>
-                  <a href="#" className="hover:text.white transition">
+                  <a href="#" className="hover:text-white transition">
                     Help Center
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text.white transition">
+                  <a href="#" className="hover:text-white transition">
                     Contact Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text.white transition">
+                  <a href="#" className="hover:text-white transition">
                     Privacy Policy
                   </a>
                 </li>
