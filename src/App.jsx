@@ -419,7 +419,7 @@ export default function App() {
         </div>
       </section>
     );
-  };
+
 
   const StatBubble = ({ value, label }) => (
     <div>
