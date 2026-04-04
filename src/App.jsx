@@ -320,28 +320,34 @@ export default function App() {
               appointments instantly.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button
-                onClick={() => setActiveTab("compare")}
-                className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                Start Comparing
-              </button>
-              <button
-                onClick={() => {
-                  setShowDemoModal(true);
-                  setDemoStep(0);
-                }}
-                className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition border-2 border-white/30"
-              >
-                Watch Demo
-              </button>
-            </div>
-            <div className="flex items-center space-x-8 pt-4">
-              <StatBubble value="$3.2M+" label="Total Saved" />
-              <StatBubble value="25K+" label="Happy Users" />
-              <StatBubble value="150+" label="Hospitals" />
-            </div>
-          </div>
+  <button
+    onClick={() => setActiveTab("compare")}
+    className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition"
+  >
+    Start Comparing
+  </button>
+
+  <button
+    onClick={() => {
+      setShowDemoModal(true);
+      setDemoStep(0);
+    }}
+    className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold"
+  >
+    Watch Demo
+  </button>
+
+  <button
+    onClick={() => {
+      setSelectedHospital(mockHospitals[0]);
+      setShowBookingModal(true);
+    }}
+    className="px-8 py-4 bg-yellow-400 text-black rounded-xl font-bold hover:bg-yellow-300 transition"
+  >
+    Book Appointment
+  </button>
+
+</div>
 
           {/* RIGHT SIDE – AI INSIGHTS PANEL */}
           <div className="relative hidden lg:block">
@@ -1531,6 +1537,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      <BookingModal />
     </div>
   );
 }
