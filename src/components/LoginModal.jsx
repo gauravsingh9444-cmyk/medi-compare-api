@@ -30,12 +30,13 @@ const HeartbeatLine = () => (
         }
       `}</style>
     <polyline
-  points="0,30 40,30 55,10 65,50 75,5 90,55 100,30 140,30 155,15 165,45 175,20 185,40 195,30 300,30"
-  style={{
-    strokeDasharray: 400,
-    strokeDashoffset: 400,
-    animation: "dash 2s linear infinite",
-  }}
+      points="0,30 40,30 55,10 65,50 75,5 90,55 100,30 140,30 155,15 165,45 175,20 185,40 195,30 300,30"
+      stroke="white"
+      style={{
+        strokeDasharray: 400,
+        strokeDashoffset: 400,
+        animation: "dash 2s linear infinite",
+      }}
       strokeWidth="2"
       fill="none"
       strokeLinecap="round"
@@ -79,10 +80,8 @@ export default function LoginModal({ isOpen, onClose }) {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [visible, setVisible] = useState(false);
 
-  // Handle open/close animation
   useEffect(() => {
     if (isOpen) {
-      // Small delay so CSS transition picks up
       requestAnimationFrame(() => setVisible(true));
       document.body.style.overflow = "hidden";
     } else {
@@ -92,7 +91,6 @@ export default function LoginModal({ isOpen, onClose }) {
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleKey = (e) => { if (e.key === "Escape") onClose(); };
     if (isOpen) window.addEventListener("keydown", handleKey);
@@ -102,7 +100,6 @@ export default function LoginModal({ isOpen, onClose }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate async login — replace with real auth logic
     await new Promise((r) => setTimeout(r, 1500));
     setIsLoading(false);
     onClose();
@@ -112,7 +109,6 @@ export default function LoginModal({ isOpen, onClose }) {
 
   return (
     <>
-      {/* ── Inject keyframe animations ── */}
       <style>{`
         @keyframes modalFadeIn {
           from { opacity: 0; transform: scale(0.92) translateY(16px); }
@@ -142,21 +138,11 @@ export default function LoginModal({ isOpen, onClose }) {
         }
         .modal-animate { animation: modalFadeIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
         .overlay-animate { animation: overlayFadeIn 0.25s ease forwards; }
-        .fi1 { animation: float1 4.2s ease-in-out infinite; }
-        .fi2 { animation: float2 5.1s ease-in-out infinite 0.8s; }
-        .fi3 { animation: float3 3.8s ease-in-out infinite 1.5s; }
-        .fi4 { animation: float4 6s   ease-in-out infinite 0.3s; }
-        .fi5 { animation: float1 4.8s ease-in-out infinite 2s; }
-        .fi6 { animation: float2 3.5s ease-in-out infinite 1s; }
-        .fi7 { animation: float3 5.5s ease-in-out infinite 0.6s; }
         .grad-bg {
           background: linear-gradient(135deg, #1e1b4b, #312e81, #1d4ed8, #0e7490, #1e3a5f);
           background-size: 300% 300%;
           animation: gradientShift 8s ease infinite;
         }
-        .heartbeat-pulse { animation: heartPulse 2s ease-in-out infinite; }
-        .input-focused { animation: inputGlow 0.4s ease-out; }
-        .btn-spinner { animation: spin360 0.7s linear infinite; }
         .glass-card {
           background: rgba(255,255,255,0.09);
           backdrop-filter: blur(24px);
@@ -213,9 +199,10 @@ export default function LoginModal({ isOpen, onClose }) {
         .link-btn { color: rgba(139,92,246,0.9); transition: color 0.2s ease; }
         .link-btn:hover { color: rgba(167,139,250,1); text-decoration: underline; }
         .divider-line { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); }
+        .btn-spinner { animation: spin360 0.7s linear infinite; }
+        .input-focused { animation: inputGlow 0.4s ease-out; }
       `}</style>
 
-      {/* ── Overlay ── */}
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 overlay-animate"
         style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
@@ -224,10 +211,8 @@ export default function LoginModal({ isOpen, onClose }) {
         aria-modal="true"
         aria-label="Sign in to MediCompare AI"
       >
-        {/* ── Animated gradient background behind modal ── */}
         <div className="fixed inset-0 grad-bg opacity-80 -z-10" />
 
-        {/* ── Floating medical plus icons (background decoration) ── */}
         <FloatingIcon style={{ top: "8%",  left: "6%",  animationName: "float1", animationDuration: "4.2s", animationIterationCount: "infinite" }} size={28} opacity={0.22} />
         <FloatingIcon style={{ top: "15%", right: "8%", animationName: "float2", animationDuration: "5.1s", animationIterationCount: "infinite", animationDelay: "0.8s" }} size={22} opacity={0.18} />
         <FloatingIcon style={{ top: "55%", left: "3%", animationName: "float3", animationDuration: "3.8s", animationIterationCount: "infinite", animationDelay: "1.5s" }} size={18} opacity={0.15} />
@@ -236,19 +221,14 @@ export default function LoginModal({ isOpen, onClose }) {
         <FloatingIcon style={{ bottom: "12%", left: "15%", animationName: "float2", animationDuration: "3.5s", animationIterationCount: "infinite", animationDelay: "1s" }} size={20} opacity={0.16} />
         <FloatingIcon style={{ bottom: "20%", right: "12%", animationName: "float3", animationDuration: "5.5s", animationIterationCount: "infinite", animationDelay: "0.6s" }} size={16} opacity={0.14} />
 
-        {/* ── Modal card ── */}
         <div
           className="relative w-full max-w-md rounded-3xl p-8 modal-animate overflow-hidden"
           style={{ maxHeight: "95vh", overflowY: "auto" }}
         >
-          {/* Glass card effect */}
           <div className="glass-card absolute inset-0 rounded-3xl -z-10" />
-
-          {/* Subtle inner glow top */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
             style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.6), transparent)" }} />
 
-          {/* ── Close button ── */}
           <button
             onClick={onClose}
             className="close-btn absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white z-10"
@@ -260,7 +240,6 @@ export default function LoginModal({ isOpen, onClose }) {
             </svg>
           </button>
 
-          {/* ── Logo / Brand ── */}
           <div className="text-center mb-7">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
               style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
@@ -276,10 +255,7 @@ export default function LoginModal({ isOpen, onClose }) {
             </p>
           </div>
 
-          {/* ── Form ── */}
           <form onSubmit={handleLogin} className="space-y-4">
-
-            {/* Email */}
             <div className="space-y-1.5">
               <label className="block text-xs font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
                 Email address
@@ -305,7 +281,6 @@ export default function LoginModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Password */}
             <div className="space-y-1.5">
               <label className="block text-xs font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
                 Password
@@ -339,14 +314,12 @@ export default function LoginModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Forgot password */}
             <div className="text-right -mt-1">
               <button type="button" className="link-btn text-xs">
                 Forgot password?
               </button>
             </div>
 
-            {/* Login button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -370,14 +343,12 @@ export default function LoginModal({ isOpen, onClose }) {
             </button>
           </form>
 
-          {/* ── Divider ── */}
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px divider-line" />
             <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>or continue with</span>
             <div className="flex-1 h-px divider-line" />
           </div>
 
-          {/* ── Google SSO button ── */}
           <button
             type="button"
             className="btn-google w-full py-3 rounded-xl text-white text-sm font-medium flex items-center justify-center gap-3"
@@ -386,7 +357,6 @@ export default function LoginModal({ isOpen, onClose }) {
             Continue with Google
           </button>
 
-          {/* ── Sign up link ── */}
           <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.45)" }}>
             Don't have an account?{" "}
             <button type="button" className="link-btn font-medium">
@@ -394,11 +364,9 @@ export default function LoginModal({ isOpen, onClose }) {
             </button>
           </p>
 
-          {/* Heartbeat decoration */}
           <HeartbeatLine />
         </div>
       </div>
     </>
   );
 }
-
