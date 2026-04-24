@@ -8,6 +8,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area,
 } from "recharts";
+import LoginModal from "./components/LoginModal.jsx";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");
@@ -16,6 +17,7 @@ export default function App() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mlRecommendations, setMlRecommendations] = useState([]);
@@ -169,6 +171,7 @@ export default function App() {
                 className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition">
                 Watch Demo
               </button>
+              
               <button onClick={() => { setSelectedHospital(mockHospitals[0]); setShowBookingModal(true); }}
                 className="px-8 py-4 bg-yellow-400 text-black rounded-xl font-bold hover:bg-yellow-300 transition">
                 Book Appointment
@@ -229,6 +232,7 @@ export default function App() {
             </div>
           </div>
         </div>
+     
       </section>
     );
   };
@@ -586,9 +590,12 @@ export default function App() {
                 ))}
               </div>
             </div>
-            <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center space-x-2">
-              <Check className="w-5 h-5" /><span>Complete Payment</span>
-            </button>
+            <button
+  onClick={() => setShowLoginModal(true)}
+  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg"
+>
+  Sign In
+</button>
           </div>
         </div>
       </div>
@@ -690,7 +697,12 @@ export default function App() {
               <Bell className="w-6 h-6 text-gray-600" />
               <span className="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">3</span>
             </button>
-            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg">Sign In</button>
+            <button
+  onClick={() => setShowLoginModal(true)}
+  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-semibold shadow-lg"
+>
+  Sign In
+</button>
           </div>
         </div>
       </header>
@@ -728,6 +740,7 @@ export default function App() {
       <PaymentModal />
       <ShareModal />
       <DemoModal />
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
       <footer className="bg-gray-900 text-white py-12 mt-16">
         <div className="max-w-7xl mx-auto px-4">
