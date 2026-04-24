@@ -23,9 +23,19 @@ const HeartbeatLine = () => (
     xmlns="http://www.w3.org/2000/svg"
     className="absolute bottom-6 left-1/2 -translate-x-1/2 w-48 opacity-20 pointer-events-none"
   >
+    <style>{`
+        @keyframes dash {
+          0% { stroke-dashoffset: 400; }
+          100% { stroke-dashoffset: 0; }
+        }
+      `}</style>
     <polyline
-      points="0,30 40,30 55,10 65,50 75,5 90,55 100,30 140,30 155,15 165,45 175,20 185,40 195,30 300,30"
-      stroke="white"
+  points="0,30 40,30 55,10 65,50 75,5 90,55 100,30 140,30 155,15 165,45 175,20 185,40 195,30 300,30"
+  style={{
+    strokeDasharray: 400,
+    strokeDashoffset: 400,
+    animation: "dash 2s linear infinite",
+  }}
       strokeWidth="2"
       fill="none"
       strokeLinecap="round"
